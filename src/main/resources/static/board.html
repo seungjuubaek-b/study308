@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판 검색 테스트</title>
+    <style>
+        /* 화면을 조금 예쁘게 꾸며주는 CSS (선택 사항) */
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background-color: #f4f4f4; }
+        .search-container { text-align: center; margin-bottom: 20px; }
+        select, input, button { padding: 5px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align: center;">게시판 검색 테스트</h2>
+
+<div class="search-container">
+    <select id="searchType">
+        <option value="title">제목</option>
+        <option value="content">내용</option>
+        <option value="writer">작성자</option>
+        <option value="title_content">제목+내용</option>
+        <option value="comment">댓글내용</option>
+        <option value="title_comment">제목+댓글내용</option>
+    </select>
+
+    <input type="text" id="searchKeyword" placeholder="검색어 입력">
+
+    <button onclick="executeSearch()">검색하기</button>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성날짜</th>
+    </tr>
+    </thead>
+    <tbody id="articleList">
+    <tr><td colspan="4">검색어를 입력하고 버튼을 눌러주세요.</td></tr>
+    </tbody>
+</table>
+<script>
+    // 검색 버튼을 누르면 실행되는 함수
+    function executeSearch() {
+        // 1. 선택된 검색 유형과 입력된 검색어 가져오기
+        const type = document.getElementById("searchType").value;
+        const keyword = document.getElementById("searchKeyword").value;
+
+        // 2. 백엔드(안내데스크) 주소로 URL 조립하기
+        const url = `/api/articles/search?type=${type}&keyword=${keyword}`;
+
+        // 3. 백엔드로 데이터 요청하기 (fetch)
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("서버 응답 오류");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 4. 결과를 그릴 테이블 영역 가져오기 및 초기화
+                const tbody = document.getElementById("articleList");
+                tbody.innerHTML = "";
+
+                // 5. 결과가 없을 때의 처리
+                if (data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>검색 결과가 없습니다.</td></tr>";
+                    return;
+                }
+
+                // 6. 결과가 있다면 한 줄씩 테이블에 그려 넣기
+                data.forEach(article => {
+                    const row = `
+                            <tr>
+                                <td>${article.id}</td>
+                                <td>${article.title}</td>
+                                <td>${article.writer}</td>
+                                <td>${article.createdAt}</td>
+                            </tr>
+                        `;
+                    tbody.innerHTML += row;
+                });
+            })
+            .catch(error => {
+                console.error("검색 실패:", error);
+                alert("검색 중 문제가 발생했습니다. 백엔드 서버가 켜져 있는지 확인하세요!");
+            });
+    }
+</script>
+
+</body>
+</html>
