@@ -16,7 +16,7 @@
 </head>
 <body>
 
-<h2 style="text-align: center;">게시판 검색 테스트</h2>
+<h2 style="text-align: center;">게시판</h2>
 
 <div class="search-container">
     <select id="searchType">
@@ -31,6 +31,7 @@
     <input type="text" id="searchKeyword" placeholder="검색어 입력">
 
     <button onclick="executeSearch()">검색하기</button>
+    <button onclick="location.href='write.html'">글쓰기</button>
 </div>
 
 <table>
@@ -53,8 +54,8 @@
         const type = document.getElementById("searchType").value;
         const keyword = document.getElementById("searchKeyword").value;
 
-        // 2. 백엔드(안내데스크) 주소로 URL 조립하기
-        const url = `/api/articles/search?type=${type}&keyword=${keyword}`;
+        // 2. 백엔드(안내데스크) 주소로 URL 조립하기 (한글 깨짐 방지 적용!)
+        const url = `/api/articles/search?type=${type}&keyword=${encodeURIComponent(keyword)}`;
 
         // 3. 백엔드로 데이터 요청하기 (fetch)
         fetch(url)
@@ -77,12 +78,17 @@
 
                 // 6. 결과가 있다면 한 줄씩 테이블에 그려 넣기
                 data.forEach(article => {
+                    // 🚀 시간 포맷 예쁘게 다듬기 (가위질 & 글자 바꾸기)
+                    let formattedDate = article.createdAt.replace('T', ' ').substring(0, 19);
                     const row = `
                             <tr>
                                 <td>${article.id}</td>
-                                <td>${article.title}</td>
+                                <td>
+                                    <a href="detail.html?id=${article.id}" style="text-decoration: none; color: black; font-weight: normal;">
+                                        ${article.title}
+                                    </a></td>
                                 <td>${article.writer}</td>
-                                <td>${article.createdAt}</td>
+                                <td>${formattedDate}</td>
                             </tr>
                         `;
                     tbody.innerHTML += row;

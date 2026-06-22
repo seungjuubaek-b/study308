@@ -2,6 +2,7 @@ package com.example.study308.controller;
 
 import java.util.List;
 
+import com.example.study308.dto.SearchDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,9 +50,35 @@ public class ArticleApiController {
     public void deleteArticle(@PathVariable long id) {
         articleService.delete(id);
     }
+//    @GetMapping("/search")
+//    @ResponseStatus(HttpStatus.OK)
+//    public List<ArticleResponse> searchArticles(@RequestParam String keyword) {
+//        return articleService.searchAll(keyword);
+//    }
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public List<ArticleResponse> searchArticles(@RequestParam String keyword) {
-        return articleService.searchAll(keyword);
+    public List<ArticleResponse> searchArticles(@ModelAttribute SearchDto searchDto) {
+        return articleService.searchArticles(searchDto);
+    }
+
+/// ==========================================
+// ▼ 여기서부터는 댓글(Comment) 관련 API 창구 ▼
+// ==========================================
+
+// 🚀 1. 댓글 작성 창구 (앞부분 기본 주소 제외!)
+@PostMapping("/{articleId}/comments")
+public org.springframework.http.ResponseEntity<Void> addComment(
+    @PathVariable long articleId,
+    @RequestBody com.example.study308.dto.CommentRequest request) {
+    articleService.addComment(articleId, request);
+    return org.springframework.http.ResponseEntity.ok().build();
+}
+
+    // 🚀 2. 댓글 목록 조회 창구 (앞부분 기본 주소 제외!)
+    @GetMapping("/{articleId}/comments")
+    public org.springframework.http.ResponseEntity<java.util.List<com.example.study308.dto.CommentResponse>> getComments(
+        @PathVariable long articleId) {
+        java.util.List<com.example.study308.dto.CommentResponse> comments = articleService.getComments(articleId);
+        return org.springframework.http.ResponseEntity.ok(comments);
     }
 }

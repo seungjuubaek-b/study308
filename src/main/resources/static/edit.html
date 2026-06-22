@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 수정</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; text-align: center; }
+        .form-container { width: 500px; margin: 0 auto; text-align: left; border: 1px solid #ddd; padding: 20px; }
+        input, textarea { width: 100%; margin-bottom: 15px; padding: 10px; box-sizing: border-box; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<h2>게시글 수정</h2>
+
+<div class="form-container">
+    <label>제목</label>
+    <input type="text" id="title">
+
+    <label>작성자 (수정 불가)</label>
+    <input type="text" id="writer" readonly style="background-color: #eee;">
+
+    <label>내용</label>
+    <textarea id="content" rows="10"></textarea>
+
+    <div style="text-align: center;">
+        <button onclick="updateArticle()">수정 완료</button>
+        <button onclick="history.back()">취소</button>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
+
+    // 1. 화면 켜지자마자 기존 글 내용 불러와서 빈칸에 채워넣기
+    if (articleId) {
+        fetch(`/api/articles/${articleId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('title').value = data.title;
+                document.getElementById('writer').value = data.writer;
+                document.getElementById('content').value = data.content;
+            });
+    }
+
+    // 2. [수정 완료] 버튼 누르면 작동하는 함수
+    function updateArticle() {
+        const title = document.getElementById("title").value;
+        const content = document.getElementById("content").value;
+
+        const requestData = { title: title, content: content };
+
+        // PUT 방식으로 백엔드에 "이 번호 글 내용 좀 이렇게 덮어씌워 줘!" 라고 요청
+        fetch(`/api/articles/${articleId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert("게시글이 성공적으로 수정되었습니다!");
+                    location.href = `detail.html?id=${articleId}`; // 수정 성공하면 다시 상세 화면으로!
+                } else {
+                    alert("수정에 실패했습니다.");
+                }
+            });
+    }
+</script>
+</body>
+</html>
