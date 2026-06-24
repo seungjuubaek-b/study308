@@ -1,8 +1,11 @@
+// src/main/java/com/example/study308/service/ArticleService.java
 package com.example.study308.service;
 
 import java.util.List;
 
 import com.example.study308.dto.*;
+// 🚀 최신순 정렬을 위해 꼭 필요한 재료입니다!
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.study308.domain.Article;
@@ -27,59 +30,50 @@ public class ArticleService {
     // ▼ 여기서부터는 JPA가 담당하는 기본 요리법들 ▼
     // ==========================================
 
-    // 전체 목록 조회 (에러 났던 부분 부활!)
+    // 전체 목록 조회 (🚀 최신순 정렬 적용 완료!)
     public List<ArticleResponse> findAll() {
-        return articleRepository.findAll().stream()
+        // 번호(id)를 기준으로 내림차순(DESC) 정렬해서 가져옵니다.
+        return articleRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
             .map(ArticleResponse::of)
             .toList();
     }
 
     // 게시글 1개 찾기
     public ArticleResponse findById(long id) {
-//        return ArticleResponse.of(
-//            articleRepository.findById(id)
-//                .orElseThrow(() -> new IllegalArgumentException("not found: " + id))
-//        );
-        // 🚀 [새로운 MyBatis 코드] - 문지기야, 네가 직접 DB 가서 1개 찾아와!
-        return articleMapper.getArticleById(id);
+        Article article = articleRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + id));
+        return ArticleResponse.of(article);
     }
 
     // 새 게시글 작성
     public ArticleResponse create(ArticleForm request) {
-//        return ArticleResponse.of(articleRepository.save(Article.of(request)));
-        // 🚀 [새로운 MyBatis 코드]
-        Article article = Article.of(request); // 1. 프론트에서 온 데이터를 Article 모양으로 바꿈
-        articleMapper.insertArticle(article);  // 2. MyBatis 문지기에게 "이거 DB에 넣어!" 하고 시킴
-        return ArticleResponse.of(article);    // 3. 안내데스크에 결과물 보고
+        Article savedArticle = articleRepository.save(Article.of(request));
+        return ArticleResponse.of(savedArticle);
     }
 
     // 게시글 수정
     public ArticleResponse update(long id, ArticleForm form) {
-        // [기존 JPA 코드 - 이제 안 씀!]
-        // Article article = articleRepository.findById(id)
-        //     .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
-        // article.update(form);
-        // return ArticleResponse.of(article);
+        Article article = articleRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다: " + id));
 
-        // 🚀 [새로운 MyBatis 코드] - 문지기야, 네가 직접 DB 가서 수정하고 결과 가져와!
-        articleMapper.updateArticle(id, form.title(), form.content());
-        return articleMapper.getArticleById(id);
+        article.update(form); // 값만 바꿔주면 JPA가 알아서 업데이트 처리함
+        return ArticleResponse.of(article);
     }
 
-    // 게시글 삭제
+    // 게시글 삭제 (🚀 댓글 먼저 지우는 안전한 방식으로 복구 완료!)
     public void delete(long id) {
-        // [기존 JPA 코드 - 이제 안 씀!]
-        // articleRepository.deleteById(id);
+        // 1. MyBatis 문지기를 시켜서 엮여있는 댓글을 확실하게 먼저 싹 지웁니다.
+        articleMapper.deleteCommentsByArticleId(id);
 
-        // 🚀 [새로운 MyBatis 코드] - 문지기야, 이 번호 글 삭제해!
-        articleMapper.deleteArticle(id);
+        // 2. 그 다음 JPA 로봇에게 게시글 본체를 지우라고 명령합니다.
+        articleRepository.deleteById(id);
     }
 
     // ==============================================
-    // ▼ 여기서부터는 MyBatis가 담당하는 고급 검색 요리법 ▼
+    // ▼ 여기서부터는 MyBatis가 담당하는 고급 검색/댓글 요리법 ▼
     // ==============================================
 
-    // 🚀 다이나믹 검색 로직 (MyBatis Mapper 호출) 🚀
+    // 🚀 다이나믹 검색 로직 (MyBatis Mapper 호출)
     public List<ArticleResponse> searchArticles(SearchDto searchDto) {
         return articleMapper.searchArticles(searchDto);
     }
@@ -92,5 +86,15 @@ public class ArticleService {
     // 🚀 댓글 가져오기 로직
     public List<CommentResponse> getComments(long articleId) {
         return articleMapper.getCommentsByArticleId(articleId);
+    }
+
+    // 🚀 댓글 수정 로직
+    public void updateComment(long commentId, String content) {
+        articleMapper.updateComment(commentId, content);
+    }
+
+    // 🚀 댓글 삭제 로직
+    public void deleteComment(long commentId) {
+        articleMapper.deleteComment(commentId);
     }
 }

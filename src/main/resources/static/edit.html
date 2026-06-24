@@ -18,8 +18,8 @@
     <label>제목</label>
     <input type="text" id="title">
 
-    <label>작성자 (수정 불가)</label>
-    <input type="text" id="writer" readonly style="background-color: #eee;">
+    <label>작성자</label>
+    <input type="text" id="writer" readonly style="background-color: white;">
 
     <label>내용</label>
     <textarea id="content" rows="10"></textarea>
@@ -49,8 +49,9 @@
     function updateArticle() {
         const title = document.getElementById("title").value;
         const content = document.getElementById("content").value;
-
-        const requestData = { title: title, content: content };
+// 🚀 [추가할 부분] 수정할 수 없게 막아둔(readonly) 작성자 이름도 가져옵니다!
+        const writer = document.getElementById("writer").value;
+        const requestData = { title: title, content: content, writer: writer };
 
         // PUT 방식으로 백엔드에 "이 번호 글 내용 좀 이렇게 덮어씌워 줘!" 라고 요청
         fetch(`/api/articles/${articleId}`, {

@@ -2,19 +2,29 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>게시글 작성</title>
+    <title>새 게시글 작성</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; text-align: center; }
-        .form-container { width: 500px; margin: 0 auto; text-align: left; border: 1px solid #ddd; padding: 20px; }
-        input, textarea { width: 100%; margin-bottom: 15px; padding: 10px; box-sizing: border-box; }
-        button { padding: 10px 20px; cursor: pointer; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f8f9fa; margin: 0; padding: 40px 20px; color: #333; }
+        .form-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        h2 { text-align: center; color: #222; margin-bottom: 30px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 15px; }
+
+        label { font-weight: bold; margin-bottom: 8px; display: block; color: #555; }
+        input, textarea { width: 100%; margin-bottom: 25px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
+        input:focus, textarea:focus { border-color: #3b3bf9; outline: none; }
+
+        .btn-group { text-align: center; margin-top: 10px; }
+        .btn-submit { padding: 12px 35px; background-color: #3b3bf9; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 15px; }
+        .btn-submit:hover { background-color: #2b2bd8; }
+        .btn-cancel { padding: 12px 35px; background-color: #777; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 15px; margin-left: 10px; text-decoration: none; display: inline-block; }
+        .btn-cancel:hover { background-color: #555; }
     </style>
 </head>
 <body>
 
-<h2>새 게시글 작성</h2>
-
 <div class="form-container">
+    <h2>✍ 새 게시글 작성</h2>
+
     <label>제목</label>
     <input type="text" id="title" placeholder="제목을 입력하세요">
 
@@ -22,46 +32,39 @@
     <input type="text" id="writer" placeholder="이름을 입력하세요">
 
     <label>내용</label>
-    <textarea id="content" rows="10" placeholder="내용을 입력하세요"></textarea>
+    <textarea id="content" rows="15" placeholder="내용을 입력하세요"></textarea>
 
-    <div style="text-align: center;">
-        <button onclick="saveArticle()">등록하기</button>
-        <button onclick="location.href='board.html'">목록으로 돌아가기</button>
+    <div class="btn-group">
+        <button class="btn-submit" onclick="saveArticle()">등록하기</button>
+        <a href="board.html" class="btn-cancel">취소</a>
     </div>
 </div>
 
 <script>
-    // 등록하기 버튼을 누르면 실행되는 심부름꾼
     function saveArticle() {
-        // 1. 사용자가 쓴 글씨들 가져오기
         const title = document.getElementById("title").value;
         const writer = document.getElementById("writer").value;
         const content = document.getElementById("content").value;
 
-        // 2. 백엔드 규격에 맞춰서 택배 상자(JSON)로 포장하기
-        const requestData = {
-            title: title,
-            writer: writer,
-            content: content
-        };
+        if(!title || !writer || !content) {
+            alert("모든 칸을 입력해주세요!");
+            return;
+        }
 
-        // 3. 백엔드(안내데스크)에 POST 방식(저장해줘!)으로 데이터 쏘기
+        const requestData = { title: title, writer: writer, content: content };
+
         fetch('/api/articles', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json' // "나 순수한 데이터(JSON) 보낸다!"라고 알려줌
-            },
-            body: JSON.stringify(requestData) // 자바스크립트 데이터를 글자(JSON)로 변환
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
         })
             .then(response => {
                 if (response.ok) {
-                    alert("게시글이 성공적으로 등록되었습니다!");
-                    location.href = "board.html"; // 등록 성공 시 게시판 목록 화면으로 튕겨냄!
+                    location.href = "board.html";
                 } else {
                     alert("등록에 실패했습니다.");
                 }
-            })
-            .catch(error => console.error("에러:", error));
+            });
     }
 </script>
 </body>

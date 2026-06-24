@@ -32,4 +32,14 @@ public interface ArticleMapper {
 
   // 🚀 게시글 삭제 명령어
   void deleteArticle(long id);
+
+  // 🚀 [에러 해결용] 게시글을 지우기 전에, 그 글에 달린 댓글부터 싹 지우는 명령어
+  void deleteCommentsByArticleId(long articleId);
+
+  // 🚀 [새 기능] 특정 댓글 1개 삭제 명령어
+  void deleteComment(long id);
+
+  // 🚀 [새 기능] 특정 댓글 1개 수정 명령어
+  void updateComment(@org.apache.ibatis.annotations.Param("id") long id,
+                     @org.apache.ibatis.annotations.Param("content") String content);
 }

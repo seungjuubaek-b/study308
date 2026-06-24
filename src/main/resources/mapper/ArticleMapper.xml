@@ -4,36 +4,36 @@
 <mapper namespace="com.example.study308.mapper.ArticleMapper">
 
     <select id="searchArticles" resultType="com.example.study308.dto.ArticleResponse">
-        /* 1. 기본 뼈대: 게시글(a)과 댓글(c)을 연결(JOIN)해서 가져옵니다 */
         SELECT DISTINCT
-        a.id, a.title, a.content, a.writer, a.created_at as createdAt, a.updated_at as updatedAt
+        a.id, a.title, a.content, a.writer, a.created_at as createdAt, a.updated_at as updatedAt,
+        (SELECT COUNT(*) FROM comment WHERE article_id = a.id) AS commentCount
         FROM article a
         LEFT JOIN comment c ON a.id = c.article_id
         WHERE 1=1
 
-        /* 2. keyword(검색어)가 비어있지 않을 때만 아래 검색 조건을 실행합니다 */
         <if test="keyword != null and keyword != ''">
             <choose>
+                <when test="type == 'all'">
+                    AND (a.title LIKE CONCAT('%', #{keyword}, '%')
+                    OR a.content LIKE CONCAT('%', #{keyword}, '%')
+                    OR a.writer LIKE CONCAT('%', #{keyword}, '%')
+                    OR c.content LIKE CONCAT('%', #{keyword}, '%'))
+                </when>
                 <when test="type == 'title'">
                     AND a.title LIKE CONCAT('%', #{keyword}, '%')
                 </when>
-
                 <when test="type == 'content'">
                     AND a.content LIKE CONCAT('%', #{keyword}, '%')
                 </when>
-
                 <when test="type == 'writer'">
                     AND a.writer LIKE CONCAT('%', #{keyword}, '%')
                 </when>
-
                 <when test="type == 'title_content'">
                     AND (a.title LIKE CONCAT('%', #{keyword}, '%') OR a.content LIKE CONCAT('%', #{keyword}, '%'))
                 </when>
-
                 <when test="type == 'comment'">
                     AND c.content LIKE CONCAT('%', #{keyword}, '%')
                 </when>
-
                 <when test="type == 'title_comment'">
                     AND (a.title LIKE CONCAT('%', #{keyword}, '%') OR c.content LIKE CONCAT('%', #{keyword}, '%'))
                 </when>
@@ -76,5 +76,17 @@
     <delete id="deleteArticle">
         DELETE FROM article WHERE id = #{id}
     </delete>
+
+    <delete id="deleteCommentsByArticleId">
+        DELETE FROM comment WHERE article_id = #{articleId}
+    </delete>
+
+    <delete id="deleteComment">
+        DELETE FROM comment WHERE id = #{id}
+    </delete>
+
+    <update id="updateComment">
+        UPDATE comment SET content = #{content}, updated_at = NOW() WHERE id = #{id}
+    </update>
 
 </mapper>
