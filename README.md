@@ -3,3 +3,5 @@
 docker-compose up -d --build
 
 http://localhost:8080/board.html
+
+http://localhost:8080/swagger-ui/index.html
